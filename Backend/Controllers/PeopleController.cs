@@ -1,6 +1,7 @@
 ﻿using backend.Model;
 using Backend.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Controllers
 {
@@ -24,6 +25,7 @@ namespace Backend.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] People e)
         {
+            //var eventToBeAttending = context.EventList.Find();
             var dbEvent = context.PeopleList?.Find(e.Id);
             if (dbEvent == null)
             {
@@ -33,21 +35,22 @@ namespace Backend.Controllers
             }
             return Conflict();
         }
-        //[HttpPut("{id}")]
-        //public IActionResult Update(int? id, [FromBody] Event e)
-        //{
-        //    var dbEvent = context.EventList!.AsNoTracking().FirstOrDefault(eventInDB => eventInDB.Id == e.Id);
-        //    if (id != e.Id || dbEvent == null) return NotFound();
-        //    context.Update(e);
-        //    context.SaveChanges();
-        //    return NoContent();
-        //}
+        [HttpPut("{id}")]
+        public IActionResult Update(int? id, [FromBody] People e)
+        {
+            var person = context.PeopleList!.AsNoTracking().FirstOrDefault(p => p.Id == e.Id);
+            if (id != e.Id || person == null) return NotFound();
+            person = e;
+            context.PeopleList.Update(person);
+            context.SaveChanges();
+            return CreatedAtAction(nameof(GetPeople), new { e.Id }, e);
+        }
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var eventToDelete = context.PeopleList?.Find(id);
-            if (eventToDelete == null) return NotFound();
-            context.PeopleList?.Remove(eventToDelete);
+            var person = context.PeopleList?.Find(id);
+            if (person == null) return NotFound();
+            context.PeopleList?.Remove(person);
             context.SaveChanges();
             return NoContent();
         }
