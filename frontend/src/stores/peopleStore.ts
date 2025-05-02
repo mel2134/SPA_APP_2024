@@ -4,11 +4,15 @@ import { defineStore } from "pinia";
 import useApi, { useApiRawRequest } from "@/models/api";
 
 export const usePeopleStore = defineStore('peopleStore', () => {
-  const apiGetEvents = useApi<People[]>('people');
   const people = ref<People[]>([]);
   let allPeople: People[] = [];
 
   const loadEvents = async () => {
+    const apiGetEvents = useApi<People[]>('people',{headers:{
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization:"Bearer "+localStorage.getItem('jwt')
+    }});
     await apiGetEvents.request();
 
     if (apiGetEvents.response.value) {
@@ -33,6 +37,7 @@ export const usePeopleStore = defineStore('peopleStore', () => {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        Authorization:"Bearer "+localStorage.getItem('jwt')
       },
       body: JSON.stringify(person),
     }); 
@@ -48,6 +53,7 @@ export const usePeopleStore = defineStore('peopleStore', () => {
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        Authorization:"Bearer "+localStorage.getItem('jwt')
       },
       body: JSON.stringify(person),
     });
@@ -62,6 +68,9 @@ export const usePeopleStore = defineStore('peopleStore', () => {
   const deletePerson = async (person: People) => {
     const deleteEventRequest = useApiRawRequest(`people/${person.id}`, {
       method: 'DELETE',
+      headers:{
+        Authorization:"Bearer "+localStorage.getItem('jwt')
+      }
     });
     const res = await deleteEventRequest();
     if (res.status === 204) {
