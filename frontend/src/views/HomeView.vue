@@ -1,15 +1,34 @@
 <template>
 <div>
-      Username: <input v-model="addName" placeholder="Type here"><br>
-      Password: <input v-model="addPass" placeholder="Type here"><br>
-      <button @click="Login">Login</button><br><br><br>
+      <div v-if="!jwtToken">
+        <Message v-if="failedLogin" severity="error">Failed to  login!</Message>
+        <br>
+        <InputText name="username" type="text" placeholder="Username" v-model="addName"/><br><br>
+        <InputText name="username" type="password" placeholder="Password" v-model="addPass"/><br><br>
+        <Button type="submit" severity="secondary" label="Login" @click="Login"/>
+      </div>
+      <div v-if="jwtToken">
+        <Button type="submit" severity="secondary" label="Logout" @click="Logout"/>
+      </div>
 </div>
 </template>
 <script setup lang="ts">
 import { defineProps, onMounted, watch, ref  } from "vue";
 import useApi, { useApiRawRequest,apiUrl } from "@/models/api";
+import { useRouter} from 'vue-router'
+import Message from 'primevue/message';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
+import { computed } from 'vue'
 const addName = ref('')
 const addPass = ref('')
+let failedLogin = ref(false);
+const router = useRouter()
+const jwtToken = computed(() => !!localStorage.getItem("jwt"))
+function Logout(){
+  localStorage.removeItem('jwt');
+  router.go()
+}
 function Login(){
     const resp = fetch(apiUrl+"Auth"+"?username="+addName.value + "&password=" + addPass.value,{
       method: 'POST',
@@ -21,7 +40,8 @@ function Login(){
     })
     .then(function (json) {
         localStorage.setItem('jwt', json.token)
-        console.log(json.token)
+        router.go()
     })
+    failedLogin.value = true
 }
 </script>

@@ -9,8 +9,8 @@
         <Column field="eventId" header="EventId" style="color: black;"/>
         <Column header="Actions" style="color: black;">
           <template #body="{ data }">
-            <button @click="deletePerson({id:data.id,name:data.name,email:data.email,eventId:data.eventId})">Kustuta</button>
-            <button @click="showUpdate(data.id)">Uuenda</button>
+            <Button type="submit" variant="text" severity="info" label="Uuenda" @click="showUpdate(data.id)"/>
+            <Button type="submit" variant="text" severity="danger" label="Kustuta" @click="deletePerson({id:data.id,name:data.name,email:data.email,eventId:data.eventId})"/>
         </template>
         </Column>
       </DataTable>
@@ -18,25 +18,38 @@
     </div>
   </div>
   <div>
-      Name: <input v-model="addName" placeholder="Type here"><br>
-      Email: <input v-model="addEmail" placeholder="Type here"><br>
-      EventId: <input v-model="addEventId" placeholder="Type here"><br>
-      <button @click="addNew">Lisa uus inimene</button><br><br><br>
+  <br><br><br>
+      <div v-if="!update">
+        <InputText name="name" type="text" placeholder="Name" v-model="addName"/><br><br>
+        <InputText name="email" type="text" placeholder="Email" v-model="addEmail"/><br><br>
+        <InputText name="eid" type="text" placeholder="Event ID" v-model="addEventId"/><br><br>
+        <Button type="submit" severity="secondary" label="Lisa uus inimene" @click="addNew"/>
+      </div>
       <div v-if="update">
-        Name: <input v-model="updateName" placeholder="Type here"><br>
-        Email: <input v-model="updateEmail" placeholder="Type here"><br>
-        EventId: <input v-model="updateEventId" placeholder="Type here"><br>
-        <button @click="updatePerson">Uuenda</button><br><br><br>
+        <InputText name="name" type="text" placeholder="Name" v-model="updateName"/><br><br>
+        <InputText name="email" type="text" placeholder="Email" v-model="updateEmail"/><br><br>
+        <InputText name="eid" type="text" placeholder="Event ID" v-model="updateEventId"/><br><br>
+        <Button type="submit" severity="secondary" label="Uuenda infot" @click="updatePerson"/><br><br><br>
+        <Button type="submit" severity="danger" label="Tühista uuendamine" @click="cancelUpdate"/>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useRoute,useRouter} from "vue-router";
+const router = useRouter()
+if(!localStorage.getItem("jwt")){
+    router.push("/")
+}
+import { computed } from 'vue'
 import { type People } from '@/models/people';
 import { usePeopleStore } from "@/stores/peopleStore";
 import { storeToRefs } from "pinia";
 import { defineProps, onMounted, watch, ref  } from "vue";
-import { useRoute } from "vue-router";
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
+
 const addName = ref('')
 const addEmail = ref('')
 const addEventId = ref('')
@@ -56,6 +69,9 @@ function addNew(){
 function showUpdate(id:number){
   updateId.value = id
   update.value = true
+}
+function cancelUpdate(){
+  update.value = false
 }
 function deletePerson(person: People) {
   let people: People = {id: person.id,
