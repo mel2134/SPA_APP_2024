@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using backend.Model;
+using Backend.Helpers;
+using Backend.Model;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -10,15 +14,50 @@ namespace Backend.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        [HttpPost]
+        private readonly DataContext context;
+        public AuthController(DataContext c)
+        {
+            context = c;
+        }
+        [HttpPost("login")]
         public IActionResult Login(string username, string password)
         {
-            if (username == "admin" && password == "admin")
+            var user = context.Users.FirstOrDefault(u=>u.Username == username);
+            if (user == null) return NotFound("No such user");
+            if (!Hasher.Verify(password, user.SaltedPassword)) return Unauthorized("Invalid creds");
+            var token = GenerateJwtToken(username, user.SaltedPassword);
+            return Ok(new Dictionary<string, string>(){
+                {"token",token},
+                {"type",user.UserType.ToString()},
+                {"name",username},
+            });
+        }
+
+        [HttpPost("register")]
+        public IActionResult Register(string username, string password,int type = 1)
+        {
+            var exists = context.Users.FirstOrDefault(u => u.Username == username);
+            if (exists != null) return BadRequest("User already exists!");
+            string salted = Hasher.Hash(password);
+            context.Users.Add(new()
             {
-                var token = GenerateJwtToken(username, password);
-                return Ok(new { token });
-            }
-            return Unauthorized();
+                Username = username,
+                SaltedPassword = salted,
+                UserType = type
+            });
+            context.SaveChanges();
+            var token = GenerateJwtToken(username, salted);
+            return Ok(new Dictionary<string, string>(){
+                {"token",token},
+                {"type",type.ToString()},
+                {"name",username}
+            });
+        }
+        [HttpGet("all")]
+
+        public IActionResult GetAllUsersDebug()
+        {
+            return Ok(context.Users.Include(u => u.PrivateNotes).ToList());
         }
         private string GenerateJwtToken(string username, string userId)
         {

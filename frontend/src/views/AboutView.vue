@@ -9,7 +9,7 @@
   if(!localStorage.getItem("jwt")){
       router.push("/")
   }
-  import EventList from "@/components/EventList.vue"
+
   import {defineProps} from "vue";
   
   defineProps<{ title: String}>();

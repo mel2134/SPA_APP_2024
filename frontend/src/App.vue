@@ -9,7 +9,7 @@ const login = computed(() => !!localStorage.getItem("jwt"))
   <nav>
     <RouterLink to="/">Home</RouterLink>
     <div v-if="login">
-        <RouterLink to="/about">Events</RouterLink><br>
+        <RouterLink to="/notes">Notes</RouterLink><br>
         <RouterLink to="/create">People</RouterLink><br>
     </div>
   </nav>
